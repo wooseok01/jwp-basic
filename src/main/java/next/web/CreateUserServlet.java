@@ -7,6 +7,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import next.model.User;
 
@@ -17,15 +18,22 @@ import core.db.DataBase;
 
 @WebServlet("/user/create")
 public class CreateUserServlet extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-    private static final Logger log = LoggerFactory.getLogger(CreateUserServlet.class);
+	private static final long serialVersionUID = 1L;
+	private static final Logger log = LoggerFactory.getLogger(CreateUserServlet.class);
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        User user = new User(req.getParameter("userId"), req.getParameter("password"), req.getParameter("name"),
-                req.getParameter("email"));
-        log.debug("user : {}", user);
-        DataBase.addUser(user);
-        resp.sendRedirect("/user/list");
-    }
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		User user = new User(req.getParameter("userId"), req.getParameter("password"), req.getParameter("name"),
+			req.getParameter("email"));
+		log.debug("user : {}", user);
+		DataBase.addUser(user);
+		setSession(req, user);
+		resp.sendRedirect("/user/list");
+	}
+
+	private void setSession(HttpServletRequest request, User user) throws ServletException {
+		HttpSession session = request.getSession();
+
+		session.setAttribute("user", user);
+	}
 }
