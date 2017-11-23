@@ -58,7 +58,7 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li class="active"><a href="../index.html">Posts</a></li>
                     <c:choose>
-                        <c:when test="${session.user ne null}">
+                        <c:when test="${user ne null}">
                             <li><a href="/user/logout" role="button">로그아웃</a></li>
                             <li><a href="/user/update" role="button">개인정보수정</a></li>
                         </c:when>

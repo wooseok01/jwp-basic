@@ -21,14 +21,16 @@ import next.model.User;
 @WebServlet("/user/login")
 public class LoginServlet extends HttpServlet {
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws
+		ServletException,
+		IOException {
 		String userId = request.getParameter("userId");
 		String password = request.getParameter("password");
 
 		User user = new User(userId, password);
 
 		RequestDispatcher requestDispatcher;
-		if (StringUtils.isAnyEmpty(userId, password) || isLoginSuccess(user)) {
+		if (StringUtils.isAnyEmpty(userId, password) || !isLoginSuccess(user)) {
 			requestDispatcher = request.getRequestDispatcher("/user/login_failed.jsp");
 			requestDispatcher.forward(request, response);
 			return;
@@ -44,11 +46,11 @@ public class LoginServlet extends HttpServlet {
 
 	private boolean isLoginSuccess(User targetUser) {
 		User user = DataBase.findUserById(targetUser.getUserId());
-		if(user == null) {
+		if (user == null) {
 			return false;
 		}
 
-		if(StringUtils.equals(user.getUserId(), targetUser.getUserId())
+		if (StringUtils.equals(user.getUserId(), targetUser.getUserId())
 			&& StringUtils.equals(user.getPassword(), targetUser.getPassword())) {
 			return true;
 		}

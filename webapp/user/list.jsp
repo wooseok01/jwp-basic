@@ -1,6 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-
 <!DOCTYPE html>
 <html lang="kr">
 <head>
@@ -8,11 +7,11 @@
     <meta charset="utf-8">
     <title>SLiPP Java Web Programming</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <!--[if lt IE 9]>
     <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <link href="../css/styles.css" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet">
 </head>
 <body>
 <jsp:include page="header.jsp"/>
@@ -33,7 +32,10 @@
                         <td>${user.userId}</td>
                         <td>${user.name}</td>
                         <td>${user.email}</td>
-                        <td><a href="#" class="btn btn-success" role="button">수정</a>
+                        <td>
+                            <c:if test="${user.userId eq session.user.userId}">
+                                <a href="/user/update" class="btn btn-success" role="button">수정</a>
+                            </c:if>
                         </td>
                     </tr>
                 </c:forEach>
