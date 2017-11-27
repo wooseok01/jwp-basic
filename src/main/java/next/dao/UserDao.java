@@ -9,70 +9,105 @@ import java.util.List;
 
 import core.jdbc.ConnectionManager;
 import next.model.User;
+import next.template.JDBCTemplate;
 
 public class UserDao {
-    public void insert(User user) throws SQLException {
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        try {
-            con = ConnectionManager.getConnection();
-            String sql = "INSERT INTO USERS VALUES (?, ?, ?, ?)";
-            pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, user.getUserId());
-            pstmt.setString(2, user.getPassword());
-            pstmt.setString(3, user.getName());
-            pstmt.setString(4, user.getEmail());
+	public void insert(User user) throws SQLException {
+		JDBCTemplate jdbcTemplate = new JDBCTemplate() {
+			@Override
+			public void setValues(User user, PreparedStatement pstmt) {
+				try {
+					pstmt.setString(1, user.getUserId());
+					pstmt.setString(2, user.getPassword());
+					pstmt.setString(3, user.getName());
+					pstmt.setString(4, user.getEmail());
+				} catch (SQLException e) {
+					throw new RuntimeException("setValues error!", e);
+				}
+			}
 
-            pstmt.executeUpdate();
-        } finally {
-            if (pstmt != null) {
-                pstmt.close();
-            }
+			@Override
+			public String createQuery() {
+				return "INSERT INTO USERS(userId, password, name, email) VALUE(?,?,?,?)";
+			}
+		};
 
-            if (con != null) {
-                con.close();
-            }
-        }
-    }
+		excuteQuery(user, jdbcTemplate);
+	}
 
-    public void update(User user) throws SQLException {
-        // TODO 구현 필요함.
-    }
+	public void update(User user) throws SQLException {
+		JDBCTemplate jdbcTemplate = new JDBCTemplate() {
+			@Override
+			public void setValues(User user, PreparedStatement pstmt) {
+				try {
+					pstmt.setString(1, user.getPassword());
+					pstmt.setString(2, user.getName());
+					pstmt.setString(3, user.getEmail());
+					pstmt.setString(4, user.getUserId());
+				} catch (SQLException e) {
+					throw new RuntimeException("setValues error!", e);
+				}
+			}
 
-    public List<User> findAll() throws SQLException {
-        // TODO 구현 필요함.
-        return new ArrayList<User>();
-    }
+			@Override
+			public String createQuery() {
+				return "UPDATE USERS SET password=?, name=?, email=? WHERE userId=?";
+			}
+		};
 
-    public User findByUserId(String userId) throws SQLException {
-        Connection con = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            con = ConnectionManager.getConnection();
-            String sql = "SELECT userId, password, name, email FROM USERS WHERE userid=?";
-            pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, userId);
+		excuteQuery(user, jdbcTemplate);
+	}
 
-            rs = pstmt.executeQuery();
+	public List<User> findAll() throws SQLException {
+		String sql = "SELECT userId, password, name, email FROM USERS";
 
-            User user = null;
-            if (rs.next()) {
-                user = new User(rs.getString("userId"), rs.getString("password"), rs.getString("name"),
-                        rs.getString("email"));
-            }
+		try (Connection con = ConnectionManager.getConnection();
+			 PreparedStatement pstmt = con.prepareStatement(sql);
+			 ResultSet rs = pstmt.executeQuery()) {
 
-            return user;
-        } finally {
-            if (rs != null) {
-                rs.close();
-            }
-            if (pstmt != null) {
-                pstmt.close();
-            }
-            if (con != null) {
-                con.close();
-            }
-        }
-    }
+			List<User> users = new ArrayList<>();
+
+			while (rs.next()) {
+				users.add(new User(rs.getString("userId"), rs.getString("password"), rs.getString("name"),
+					rs.getString("email")));
+			}
+
+			return users;
+		}
+	}
+
+	public User findByUserId(String userId) throws SQLException {
+		String sql = "SELECT userId, password, name, email FROM USERS WHERE userid=?";
+		ResultSet rs = null;
+		try (Connection con = ConnectionManager.getConnection();
+			 PreparedStatement pstmt = con.prepareStatement(sql)) {
+
+			pstmt.setString(1, userId);
+			rs = pstmt.executeQuery();
+
+			User user = null;
+			if (rs.next()) {
+				user = new User(rs.getString("userId"), rs.getString("password"), rs.getString("name"),
+					rs.getString("email"));
+			}
+
+			return user;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+		}
+	}
+
+	private void excuteQuery(User user, JDBCTemplate jdbcTemplate) {
+		try (Connection con = ConnectionManager.getConnection()) {
+			String sql = jdbcTemplate.createQuery();
+			PreparedStatement pstmt = con.prepareStatement(sql);
+			jdbcTemplate.setValues(user, pstmt);
+
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			throw new RuntimeException("excuteQuery occur error!", e);
+		}
+	}
 }
