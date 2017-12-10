@@ -5,4 +5,4 @@
 * 
 
 #### 7. next.web.qna package의 ShowController는 멀티 쓰레드 상황에서 문제가 발생하는 이유에 대해 설명하라.
-* 
+* 멤버 변수로써 question과 answers를 가지고 있었기 때문에 question을 받은 후에 다른 사용자가 question을 받을때 questionId의 값이 변경될 수 있기 때문에 멤버 변수가 아닌 새로운 객체를 생성해서 전달 하는 것이 더 안전하다고 판단된다.
